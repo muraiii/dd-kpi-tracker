@@ -5,338 +5,589 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>DD KPI Tracker</title>
+<title>DD KPI Tracker（俊介）</title>
 
 <style>
 :root { --pad:12px; --r:14px; --shadow:0 6px 18px rgba(0,0,0,.08); }
 *{box-sizing:border-box;}
 body{
-font-family:-apple-system,system-ui,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-margin:0;background:#f6f7fb;color:#111;
+  font-family:-apple-system,system-ui,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  margin:0;background:#f6f7fb;color:#111;
 }
 
 /* ===== Header ===== */
 .appHeader{
-position:sticky;top:0;z-index:20;
-background:#fff;box-shadow:var(--shadow);
-padding:calc(8px + env(safe-area-inset-top)) var(--pad) 10px;
+  position:sticky;top:0;z-index:20;
+  background:#fff;box-shadow:var(--shadow);
+  padding:calc(8px + env(safe-area-inset-top)) var(--pad) 10px;
 }
 .headerTop{
-display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px;
+  display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px;
 }
-.title{font-weight:900;font-size:15px;}
-.subtitle{font-size:11px;opacity:.65;}
+.titleWrap{min-width:0;}
+.title{font-weight:900;font-size:15px;line-height:1.1;}
+.subtitle{font-size:11px;opacity:.65;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
 .iconBtn{
-width:44px;height:44px;border-radius:14px;border:1px solid #e6e9f2;
-background:#fff;font-size:18px;font-weight:900;
+  width:44px;height:44px;border-radius:14px;
+  border:1px solid #e6e9f2;background:#fff;
+  font-size:18px;font-weight:900;color:#111;
 }
 .iconBtn:active{transform:translateY(1px);}
+.iconBtn.menu{
+  background:#111;color:#fff;border:0;
+  display:flex;align-items:center;justify-content:center;
+}
 
 /* Always 1-line bar */
 .alwaysPanel{margin-top:10px;padding-top:10px;border-top:1px solid #edf0f7;}
 .oneLine{
-display:grid;
-grid-template-columns:1.8fr 1.05fr .55fr 1.4fr;
-gap:8px;align-items:end;
+  display:grid;
+  /* 相手チーム入力を“短め”にして全体を締める */
+  grid-template-columns: 1.25fr .95fr .55fr 1.35fr; /* opponent / date / Q / memo */
+  gap:8px;align-items:end;
 }
 .oneLine label{font-size:11px;opacity:.75;margin-bottom:4px;}
 .oneLine input,.oneLine select{
-width:100%;border-radius:10px;border:1px solid #dfe3ee;
-padding:6px 10px;font-size:16px;background:#fff;
+  width:100%;
+  border-radius:10px;border:1px solid #dfe3ee;
+  padding:6px 8px;font-size:16px;background:#fff;
+}
+@media(max-width:420px){
+  .oneLine{grid-template-columns:1.1fr .95fr .55fr 1.1fr;gap:6px;}
+  .oneLine input,.oneLine select{padding:6px 7px;}
 }
 
 /* Menu */
 .headerPanel{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #edf0f7;}
 .headerPanel.open{display:block;}
 .panelGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.panelActions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-@media(max-width:560px){
-.panelGrid{grid-template-columns:1fr;}
-.panelActions{grid-template-columns:1fr;}
+@media(max-width:560px){.panelGrid{grid-template-columns:1fr;}}
+.menuActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+@media(max-width:560px){.menuActions{grid-template-columns:1fr;}}
+
+/* 小さめメニューボタン */
+.menuBtn{
+  width:100%;
+  border-radius:12px;
+  padding:10px 10px;
+  font-size:14px;
+  font-weight:900;
+  border:1px solid #dfe3ee;
+  background:#fff;color:#111;
+  box-shadow:none;
+}
+.menuBtn.primary{
+  background:#111;color:#fff;border:0;box-shadow:var(--shadow);
+}
+.menuBtn.danger{
+  background:#d11;color:#fff;border:0;box-shadow:var(--shadow);
 }
 
 /* Layout */
 main{padding:var(--pad);max-width:1040px;margin:0 auto;}
 .grid{display:grid;gap:var(--pad);}
-@media(min-width:920px){.grid{grid-template-columns:1.15fr .85fr;}}
+@media(min-width:920px){.grid{grid-template-columns:1.1fr .9fr;}}
 
 .card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:var(--pad);}
+
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 @media(max-width:560px){
-.row3{grid-template-columns:1fr 1fr;}
-.row3>div:last-child{grid-column:1/-1;}
+  .row3{grid-template-columns:1fr 1fr;}
+  .row3>div:last-child{grid-column:1/-1;}
 }
 
-/* Buttons */
+/* Buttons (main) */
 button{
-width:100%;border:0;border-radius:14px;padding:16px 12px;
-font-size:16px;font-weight:900;
-box-shadow:var(--shadow);background:#111;color:#fff;
+  width:100%;border:0;border-radius:14px;padding:16px 12px;
+  font-size:16px;font-weight:900;
+  box-shadow:var(--shadow);background:#111;color:#fff;
 }
 button.secondary{background:#fff;color:#111;border:1px solid #dfe3ee;box-shadow:none;}
-button.danger{background:#d11;}
 button:active{transform:translateY(1px);}
 
 .hr{height:1px;background:#edf0f7;margin:12px 0;}
 .small{font-size:12px;opacity:.78;}
+.muted{opacity:.7;}
 .mono{font-variant-numeric:tabular-nums;}
 .chip{padding:3px 8px;border:1px solid #dfe3ee;border-radius:999px;font-size:12px;font-weight:900;background:#fff;}
 
 /* KPI Cards */
 .statGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
-.stat{background:#f6f7fb;border:1px solid #e6e9f2;border-radius:14px;padding:10px;}
+.stat{background:#f6f7fb;border:1px solid #e6e9f2;border-radius:14px;padding:10px 12px;}
 .stat .k{font-size:12px;opacity:.75;}
 .stat .v{font-size:22px;font-weight:900;margin-top:2px;}
-.pill{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;}
+.pill{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;margin-top:6px;}
 .ok{background:#e7f7ea;color:#116b2a;}
 .mid{background:#fff6dd;color:#7a4d00;}
 .bad{background:#ffe5e5;color:#8a0f0f;}
+.targetHint{font-size:11px;opacity:.65;margin-top:6px;}
 
 /* Tables */
-.tableWrap{overflow-x:auto;}
+.tableWrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;}
-th,td{padding:8px 6px;border-bottom:1px solid #edf0f7;font-size:13px;}
+th,td{padding:8px 6px;border-bottom:1px solid #edf0f7;font-size:13px;text-align:left;}
 th{opacity:.7;font-weight:900;}
 .totalRow td{background:#f6f7fb;font-weight:900;}
 
 .kpiCell{display:flex;align-items:center;gap:6px;}
-.dot{width:10px;height:10px;border-radius:999px;}
+.dot{width:10px;height:10px;border-radius:999px;border:1px solid rgba(0,0,0,.08);}
 .dot.ok{background:#2dbf4f;}
 .dot.mid{background:#f0b429;}
 .dot.bad{background:#e03b3b;}
 
+.scoreInput{
+  width:72px;
+  padding:6px 8px;
+  font-size:16px;
+  border-radius:10px;
+  border:1px solid #dfe3ee;
+}
+@media(max-width:420px){ .scoreInput{width:64px;} }
+
+/* Modal */
+.modalWrap{
+  position: fixed; inset:0; display:none;
+  align-items:center; justify-content:center;
+  padding: 16px; background: rgba(0,0,0,.35); z-index: 50;
+}
+.modal{
+  width: min(680px, 100%);
+  background:#fff; border-radius: 18px; box-shadow: var(--shadow);
+  padding: 14px;
+}
+.modal h2{ margin: 4px 0 10px; font-size: 16px; }
+.modal .row3{grid-template-columns:1fr 1fr 1fr;}
+@media(max-width:560px){ .modal .row3{grid-template-columns:1fr;} }
+label{font-size:12px;opacity:.75;display:block;margin-bottom:6px;}
+input[type="text"]{
+  width:100%; border-radius:12px; border:1px solid #dfe3ee;
+  padding:10px 12px; font-size:16px; background:#fff;
+}
+.right{text-align:right;}
+.fileInput{display:none;}
+
+/* Toast */
 .toast{
-position:fixed;left:50%;bottom:16px;
-transform:translateX(-50%);
-background:rgba(17,17,17,.92);
-color:#fff;padding:10px 12px;border-radius:999px;
-font-size:13px;opacity:0;transition:.2s;
+  position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  background:rgba(17,17,17,.92);
+  color:#fff;padding:10px 12px;border-radius:999px;
+  box-shadow:var(--shadow);
+  font-size:13px;opacity:0;transition:.2s;
+  max-width:min(92vw,620px);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  pointer-events:none;
+  z-index:99;
 }
 .toast.show{opacity:1;}
 </style>
 </head>
+
 <body>
-
 <header class="appHeader">
-<div class="headerTop">
-<button class="iconBtn" id="btnMenu">☰</button>
-<div>
-<div class="title">DD KPI Tracker（俊介）</div>
-<div class="subtitle">Half最重要 / Q別＋合計表示</div>
-</div>
-<button class="iconBtn" id="btnQuickSave">💾</button>
-</div>
+  <div class="headerTop">
+    <button class="iconBtn menu" id="btnMenu" aria-label="メニュー" type="button">☰</button>
 
-<div class="alwaysPanel">
-<div class="oneLine">
-<div><label>試合名</label><input id="gameName"></div>
-<div><label>日付</label><input id="gameDate" type="date"></div>
-<div><label>Q</label><select id="quarter"></select></div>
-<div><label>メモ</label><input id="memo"></div>
-</div>
-</div>
+    <div class="titleWrap">
+      <div class="title">DD KPI Tracker（俊介）</div>
+      <div class="subtitle">Half最重要。Q別＋合計。得点相関も見る。</div>
+    </div>
 
-<div class="headerPanel" id="headerPanel">
-<div class="panelGrid">
-<div><label>試合選択</label><select id="gameSelect"></select></div>
-<div><button id="btnNewGame">新しい試合</button></div>
-</div>
-<div class="panelActions" style="margin-top:10px;">
-<button id="btnExportFile" class="secondary">エクスポート</button>
-<button id="btnImport" class="secondary">インポート</button>
-<button id="btnReset" class="danger">この試合削除</button>
-</div>
-<input id="fileInput" type="file" style="display:none;">
-</div>
+    <button class="iconBtn" id="btnQuickSave" aria-label="保存" type="button">💾</button>
+  </div>
+
+  <!-- 常時表示（1行） -->
+  <div class="alwaysPanel">
+    <div class="oneLine">
+      <div class="field">
+        <label>相手チーム</label>
+        <input id="opponent" type="text" placeholder="例：INUYAMA" />
+      </div>
+      <div class="field">
+        <label>日付</label>
+        <input id="gameDate" type="date" />
+      </div>
+      <div class="field">
+        <label>Q</label>
+        <select id="quarter"></select>
+      </div>
+      <div class="field">
+        <label>メモ</label>
+        <input id="memo" type="text" placeholder="例：プレス強め" />
+      </div>
+    </div>
+
+    <div class="small muted" style="margin-top:8px;">
+      Half Paint Rate = <span class="chip">B/H</span>　
+      Early Paint Rate = <span class="chip">TP/T</span>　
+      Foul Rate = <span class="chip">D/(B+TP)</span>
+    </div>
+  </div>
+
+  <!-- ハンバーガーメニュー内 -->
+  <div class="headerPanel" id="headerPanel">
+    <div class="panelGrid">
+      <div>
+        <label>試合を選択（過去）</label>
+        <select id="gameSelect"></select>
+      </div>
+      <div>
+        <label>目標（マスタ）</label>
+        <button class="menuBtn" id="btnTargets" type="button">KPI目標を編集</button>
+      </div>
+    </div>
+
+    <div class="menuActions">
+      <button class="menuBtn primary" id="btnNewGame" type="button">新しい試合</button>
+      <button class="menuBtn" id="btnExportFile" type="button">エクスポート</button>
+      <button class="menuBtn" id="btnImport" type="button">インポート</button>
+      <button class="menuBtn danger" id="btnDeleteGame" type="button">この試合削除</button>
+    </div>
+
+    <input class="fileInput" id="fileInput" type="file" accept="application/json" />
+  </div>
 </header>
 
 <main>
-<div class="grid">
+  <div class="grid">
+    <!-- Left: counters -->
+    <section class="card">
+      <div class="row3">
+        <div><label>Half関与（H）</label><button id="btnH" type="button">+1</button></div>
+        <div><label>Half Paint（B）</label><button id="btnB" type="button">+1</button></div>
+        <div><label>Foul（D）</label><button id="btnD" type="button">+1</button></div>
+      </div>
 
-<section class="card">
-<div class="row3">
-<div><label>Half関与(H)</label><button id="btnH">+1</button></div>
-<div><label>Half Paint(B)</label><button id="btnB">+1</button></div>
-<div><label>Collapse(C)</label><button id="btnC">+1</button></div>
-</div>
-<div class="row3" style="margin-top:10px;">
-<div><label>Foul(D)</label><button id="btnD">+1</button></div>
-<div><label>2nd(E)</label><button id="btnE">+1</button></div>
-<div><label>Trans(T)</label><button id="btnT">+1</button></div>
-</div>
-<div class="row3" style="margin-top:10px;">
-<div><label>TransPaint(TP)</label><button id="btnTP">+1</button></div>
-<div><label>Undo</label><button id="btnUndo" class="secondary">戻す</button></div>
-</div>
-</section>
+      <div class="row3" style="margin-top:10px">
+        <div><label>Trans関与（T）</label><button id="btnT" type="button">+1</button></div>
+        <div><label>TransPaint（TP）</label><button id="btnTP" type="button">+1</button></div>
+        <div><label>Undo</label><button class="secondary" id="btnUndo" type="button">1つ戻す</button></div>
+      </div>
 
-<aside class="card">
-<div class="statGrid">
-<div class="stat"><div class="k">Half合計</div><div class="v mono" id="kHalf"></div></div>
-<div class="stat"><div class="k">Early合計</div><div class="v mono" id="kEarly"></div></div>
-<div class="stat"><div class="k">Total合計</div><div class="v mono" id="kTotal"></div></div>
-<div class="stat"><div class="k">Foul合計</div><div class="v mono" id="kFoul"></div></div>
-</div>
+      <div class="hr"></div>
+      <div class="small">
+        <b>操作ルール：</b>速攻で中に触ったら <span class="chip">T</span> と <span class="chip">TP</span> を両方 +1。<br/>
+        Half侵入は <span class="chip">H</span> を +1、ペイントまで入ったら <span class="chip">B</span> も +1。
+      </div>
+    </section>
 
-<div class="hr"></div>
+    <!-- Right: KPIs + tables -->
+    <aside class="card">
+      <div class="statGrid">
+        <div class="stat">
+          <div class="k">Half Paint Rate（合計・最重要）</div>
+          <div class="v mono" id="kHalf">0%</div>
+          <div class="pill" id="sHalf">-</div>
+          <div class="targetHint" id="tHalf"></div>
+        </div>
 
-<div class="tableWrap">
-<table>
-<thead><tr><th>Q</th><th>H</th><th>B</th><th>C</th><th>D</th><th>E</th><th>T</th><th>TP</th></tr></thead>
-<tbody id="qTable"></tbody>
-</table>
-</div>
+        <div class="stat">
+          <div class="k">Early Paint Rate（合計）</div>
+          <div class="v mono" id="kEarly">0%</div>
+          <div class="pill" id="sEarly">-</div>
+          <div class="targetHint" id="tEarly"></div>
+        </div>
 
-<div class="hr"></div>
+        <div class="stat">
+          <div class="k">Paint Rate（合計）</div>
+          <div class="v mono" id="kPaint">0%</div>
+          <div class="pill" id="sPaint">-</div>
+          <div class="targetHint" id="tPaint"></div>
+        </div>
 
-<div class="tableWrap">
-<table>
-<thead><tr><th>Q</th><th>Half</th><th>Early</th><th>Total</th><th>Foul</th></tr></thead>
-<tbody id="kpiTable"></tbody>
-</table>
-</div>
-</aside>
+        <div class="stat">
+          <div class="k">Foul Rate（合計）</div>
+          <div class="v mono" id="kFoul">0%</div>
+          <div class="pill" id="sFoul">-</div>
+          <div class="targetHint" id="tFoul"></div>
+        </div>
+      </div>
 
-</div>
+      <div class="hr"></div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr><th>Q</th><th>H</th><th>B</th><th>D</th><th>T</th><th>TP</th></tr>
+          </thead>
+          <tbody id="qTable"></tbody>
+        </table>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Q</th>
+              <th>Half</th>
+              <th>Early</th>
+              <th>Paint</th>
+              <th>Foul</th>
+            </tr>
+          </thead>
+          <tbody id="kpiTable"></tbody>
+        </table>
+      </div>
+
+      <div class="hr"></div>
+
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;">
+        <div style="font-weight:900;">得点（Q別）</div>
+        <div class="small muted">相関：Paint Rate × 自チーム得点</div>
+      </div>
+
+      <div class="tableWrap" style="margin-top:6px;">
+        <table>
+          <thead>
+            <tr><th>Q</th><th>自</th><th>相手</th><th>Paint</th></tr>
+          </thead>
+          <tbody id="scoreTable"></tbody>
+        </table>
+      </div>
+
+      <div class="small" style="margin-top:8px;">
+        <b>相関 r：</b><span class="mono" id="corrVal">-</span>
+        <span class="muted" id="corrNote"></span>
+      </div>
+
+      <div class="hr"></div>
+      <div class="small muted">
+        保存：端末内（localStorage）＋JSONエクスポート/インポート。<br/>
+        ※ iOSはフォルダ自動保存不可（共有シートで選択）
+      </div>
+    </aside>
+  </div>
 </main>
 
-<div class="toast" id="toast"></div>
+<!-- Targets Modal -->
+<div class="modalWrap" id="targetsModal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="targetsTitle">
+    <h2 id="targetsTitle">KPI目標（マスタ）設定</h2>
+    <div class="small muted">0〜1で入力。「達成」=OK以上、「惜しい」=MID以上</div>
+
+    <div class="hr"></div>
+
+    <div class="row3">
+      <div><label>Half Paint OK</label><input id="tgHalfOk" type="text" /></div>
+      <div><label>Half Paint MID</label><input id="tgHalfMid" type="text" /></div>
+      <div class="small muted" style="display:flex;align-items:end;">例：OK=0.55 / MID=0.50</div>
+    </div>
+
+    <div class="row3" style="margin-top:10px;">
+      <div><label>Early OK</label><input id="tgEarlyOk" type="text" /></div>
+      <div><label>Early MID</label><input id="tgEarlyMid" type="text" /></div>
+      <div class="small muted" style="display:flex;align-items:end;">例：OK=0.80 / MID=0.65</div>
+    </div>
+
+    <div class="row3" style="margin-top:10px;">
+      <div><label>Paint OK</label><input id="tgPaintOk" type="text" /></div>
+      <div><label>Paint MID</label><input id="tgPaintMid" type="text" /></div>
+      <div class="small muted" style="display:flex;align-items:end;">例：OK=0.60 / MID=0.50</div>
+    </div>
+
+    <div class="row3" style="margin-top:10px;">
+      <div><label>Foul OK</label><input id="tgFoulOk" type="text" /></div>
+      <div><label>Foul MID</label><input id="tgFoulMid" type="text" /></div>
+      <div class="small muted" style="display:flex;align-items:end;">例：OK=0.25 / MID=0.18</div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button class="secondary" id="btnTargetsDefault" type="button">初期値に戻す</button>
+      <div class="right">
+        <button class="secondary" id="btnTargetsCancel" type="button" style="width:auto;padding:12px 14px;">キャンセル</button>
+        <button id="btnTargetsSave" type="button" style="width:auto;padding:12px 14px;margin-left:8px;">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 // =====================
-// DD KPI Tracker JS (for the index.html you貼った版)
-// - HalfとTransは独立: Half=B/H, Early=TP/T
-// - Foul = D/(B+TP)
-// - 回数テーブルに合計行
-// - KPIテーブルにQ別＋合計行
-// - メニューに 新規/Export/Import/削除/試合切替
+// Storage keys
 // =====================
+const STORAGE_GAMES = "dd_kpi_games_v8";
+const STORAGE_TARGETS = "dd_kpi_targets_v8";
 
-// ---- Storage keys ----
-const STORAGE_GAMES = "dd_kpi_games_v7_1file";
-
-// ---- Q / keys ----
-const QS = ["1", "2", "3", "4"];
-const KEYS = ["H", "B", "C", "D", "E", "T", "TP"];
+// =====================
+// Q / keys (Collapseと2ndは廃止)
+// =====================
+const QS = ["1","2","3","4"];
+const KEYS = ["H","B","D","T","TP"]; // half involvement, half paint, foul, trans involvement, trans paint
 const $ = (id) => document.getElementById(id);
 
-// ---- Simple thresholds (色付け用) ----
-const TARGETS = {
-  half:   { ok: 0.55, mid: 0.50 }, // B/H
-  early:  { ok: 0.80, mid: 0.65 }, // TP/T
-  total:  { ok: 0.60, mid: 0.50 }, // (B+TP)/(H+T)
-  foul:   { ok: 0.25, mid: 0.18 }, // D/(B+TP)
-};
-
-// ---- Toast ----
+// =====================
+// Toast
+// =====================
 let toastTimer = null;
-function toast(msg) {
+function toast(msg){
   const el = $("toast");
   if (!el) return;
   el.textContent = msg;
   el.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 1400);
+  toastTimer = setTimeout(()=> el.classList.remove("show"), 1400);
 }
 
-// ---- Data model ----
-function blankGame() {
+// =====================
+// Targets master
+// =====================
+const defaultTargets = () => ({
+  half:  { ok: 0.55, mid: 0.50 }, // B/H
+  early: { ok: 0.80, mid: 0.65 }, // TP/T
+  paint: { ok: 0.60, mid: 0.50 }, // (B+TP)/(H+T)
+  foul:  { ok: 0.25, mid: 0.18 }, // D/(B+TP)
+});
+
+function loadTargets(){
+  try {
+    const t = JSON.parse(localStorage.getItem(STORAGE_TARGETS));
+    return t || defaultTargets();
+  } catch { return defaultTargets(); }
+}
+function saveTargets(t){ localStorage.setItem(STORAGE_TARGETS, JSON.stringify(t)); }
+let targets = loadTargets();
+
+// =====================
+// Games model
+// =====================
+function blankGame(){
   const q = {};
-  QS.forEach((k) => (q[k] = { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 }));
+  const scores = {};
+  QS.forEach(k=>{
+    q[k] = {H:0,B:0,D:0,T:0,TP:0};
+    scores[k] = {us:null, them:null};
+  });
   return {
     id: String(Date.now()),
-    name: "",
-    date: new Date().toISOString().slice(0, 10),
+    opponent: "",
+    date: new Date().toISOString().slice(0,10),
     memo: "",
     createdAt: new Date().toISOString(),
     q,
+    scores
   };
 }
 
-function loadGames() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_GAMES) || "[]");
-  } catch {
-    return [];
-  }
+function loadGames(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_GAMES) || "[]"); }
+  catch { return []; }
 }
-function saveGames(list) {
+function saveGames(list){
   localStorage.setItem(STORAGE_GAMES, JSON.stringify(list));
 }
-function ensureKeys(game) {
-  if (!game.q) game.q = {};
-  QS.forEach((qq) => {
-    if (!game.q[qq]) game.q[qq] = { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 };
-    KEYS.forEach((k) => {
-      if (game.q[qq][k] == null) game.q[qq][k] = 0;
+
+function ensureKeys(game){
+  if(!game.q) game.q = {};
+  if(!game.scores) game.scores = {};
+  QS.forEach(qq=>{
+    if(!game.q[qq]) game.q[qq] = {H:0,B:0,D:0,T:0,TP:0};
+    if(!game.scores[qq]) game.scores[qq] = {us:null, them:null};
+    KEYS.forEach(k=>{
+      if(game.q[qq][k] == null) game.q[qq][k] = 0;
     });
+    if(game.scores[qq].us === undefined) game.scores[qq].us = null;
+    if(game.scores[qq].them === undefined) game.scores[qq].them = null;
   });
 }
 
-// ---- App state ----
+// =====================
+// State
+// =====================
 let games = loadGames();
 let state = games[0] || blankGame();
 ensureKeys(state);
-let history = []; // undo stack: {q, key}
+let history = []; // undo {q,key}
 
-// ---- Helpers ----
-const pct = (x) => (isFinite(x) ? Math.round(x * 100) : 0) + "%";
-
-function gradeClass(val, tg) {
+// =====================
+// Helpers
+// =====================
+const pct = (x) => (isFinite(x) ? Math.round(x*100) : 0) + "%";
+const safeNum01 = (v, fallback) => {
+  const n = Number(String(v).trim());
+  return Number.isFinite(n) ? n : fallback;
+};
+function gradeClass(val, tg){
   if (val >= tg.ok) return "ok";
   if (val >= tg.mid) return "mid";
   return "bad";
 }
+function setBadge(el, val, tg){
+  el.classList.remove("ok","mid","bad");
+  const cls = gradeClass(val, tg);
+  el.classList.add(cls);
+  el.textContent = cls==="ok" ? "達成" : (cls==="mid" ? "惜しい" : "未達");
+}
+function setTargetHint(el, tg){
+  el.textContent = `目標 OK≥${Math.round(tg.ok*100)}% / 惜しい≥${Math.round(tg.mid*100)}%`;
+}
 
-function sumKey(key) {
-  return QS.reduce((s, qq) => s + (state.q[qq]?.[key] || 0), 0);
+function sumKey(key){
+  return QS.reduce((s,qq)=> s + (state.q[qq]?.[key] || 0), 0);
 }
-function getCountsForQuarter(q) {
-  return { ...(state.q[q] || { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 }) };
+function getCountsForQuarter(q){
+  return { ...(state.q[q] || {H:0,B:0,D:0,T:0,TP:0}) };
 }
-function getCountsTotal() {
-  const out = { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 };
-  KEYS.forEach((k) => (out[k] = sumKey(k)));
+function getCountsTotal(){
+  const out = {H:0,B:0,D:0,T:0,TP:0};
+  KEYS.forEach(k => out[k] = sumKey(k));
   return out;
 }
 
-function computeKPIFromCounts(c) {
-  const H = c.H || 0;
-  const B = c.B || 0;
-  const D = c.D || 0;
-  const T = c.T || 0;
-  const TP = c.TP || 0;
-
-  const half = H ? B / H : 0;                 // Half Paint Rate
-  const early = T ? TP / T : 0;               // Early Paint Rate
-  const totalDen = H + T;
-  const total = totalDen ? (B + TP) / totalDen : 0;  // Total Paint Rate
-  const foulDen = B + TP;
-  const foul = foulDen ? D / foulDen : 0;     // Foul Rate (B+TP)
-
-  return { half, early, total, foul };
+function computeKPIFromCounts(c){
+  const H = c.H||0, B=c.B||0, D=c.D||0, T=c.T||0, TP=c.TP||0;
+  const half = H ? (B/H) : 0;
+  const early = T ? (TP/T) : 0;
+  const denPaint = (H+T);
+  const paint = denPaint ? ((B+TP)/denPaint) : 0;
+  const denFoul = (B+TP);
+  const foul = denFoul ? (D/denFoul) : 0;
+  return {half, early, paint, foul};
 }
 
-// ---- Persistence ----
-function upsertState(auto = false) {
-  state.name = ($("gameName")?.value || "").trim();
-  state.date = $("gameDate")?.value || state.date;
-  state.memo = ($("memo")?.value || "").trim();
+function pearson(xs, ys){
+  const n = Math.min(xs.length, ys.length);
+  if (n < 2) return null;
+  let sx=0, sy=0;
+  for (let i=0;i<n;i++){ sx += xs[i]; sy += ys[i]; }
+  const mx = sx/n, my = sy/n;
+  let num=0, dx=0, dy=0;
+  for (let i=0;i<n;i++){
+    const a = xs[i]-mx, b = ys[i]-my;
+    num += a*b; dx += a*a; dy += b*b;
+  }
+  const den = Math.sqrt(dx*dy);
+  if (!isFinite(den) || den===0) return null;
+  return num/den;
+}
+
+// =====================
+// Persistence
+// =====================
+function upsertState(auto=false){
+  state.opponent = ($("opponent").value || "").trim();
+  state.date = $("gameDate").value || state.date;
+  state.memo = ($("memo").value || "").trim();
 
   const list = loadGames();
-  const idx = list.findIndex((g) => g.id === state.id);
-  if (idx >= 0) list[idx] = state;
-  else list.unshift(state);
+  const idx = list.findIndex(g => g.id === state.id);
+  if (idx >= 0) list[idx] = state; else list.unshift(state);
   saveGames(list);
   games = list;
 
   if (!auto) toast("保存しました（端末内）");
 }
 
-function switchGame(id) {
+function switchGame(id){
   upsertState(true);
   const list = loadGames();
-  const found = list.find((g) => g.id === id);
+  const found = list.find(g => g.id === id);
   if (!found) return;
   ensureKeys(found);
   state = found;
@@ -345,28 +596,25 @@ function switchGame(id) {
   toast("試合を切り替えました");
 }
 
-function newGame() {
+function newGame(){
   upsertState(true);
   state = blankGame();
   ensureKeys(state);
   history = [];
-
   const list = loadGames();
   list.unshift(state);
   saveGames(list);
   games = list;
-
-  if ($("quarter")) $("quarter").value = "1";
+  $("quarter").value = "1";
   render();
   toast("新しい試合を作成");
 }
 
-function deleteCurrentGame() {
+function deleteCurrentGame(){
   if (!confirm("この試合の記録を消去します。よろしいですか？")) return;
-  const list = loadGames().filter((g) => g.id !== state.id);
+  const list = loadGames().filter(g => g.id !== state.id);
   saveGames(list);
   games = list;
-
   state = list[0] || blankGame();
   ensureKeys(state);
   history = [];
@@ -374,88 +622,131 @@ function deleteCurrentGame() {
   toast("この試合を消去しました");
 }
 
-// ---- Counters ----
-function inc(key) {
-  const q = $("quarter")?.value || "1";
+// =====================
+// Counters
+// =====================
+function inc(key){
+  const q = $("quarter").value;
   state.q[q][key] += 1;
-  history.push({ q, key });
+  history.push({q,key});
   render();
   upsertState(true);
 }
-
-function undo() {
+function undo(){
   const last = history.pop();
   if (!last) return toast("戻す履歴がありません");
-  const { q, key } = last;
+  const {q,key} = last;
   state.q[q][key] = Math.max(0, state.q[q][key] - 1);
   render();
   upsertState(true);
   toast("1つ戻しました");
 }
 
-// ---- Export / Import ----
-function filenameForGame(g) {
-  const safeName = (g.name || "game").replace(/[\\\/:*?"<>|]/g, "_").slice(0, 60);
-  const d = g.date || new Date().toISOString().slice(0, 10);
+// =====================
+// Export / Import
+// =====================
+function filenameForGame(g){
+  const safeName = (g.opponent || "game").replace(/[\\\/:*?"<>|]/g, "_").slice(0,60);
+  const d = g.date || new Date().toISOString().slice(0,10);
   return `DDKPI_${d}_${safeName}.json`;
 }
-
-function exportAsFile() {
+function exportAsFile(){
   upsertState(true);
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filenameForGame(state);
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }, 0);
-  toast("エクスポート開始");
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  toast("エクスポートを開始しました");
 }
-
-function importFromFile(file) {
+function importFromFile(file){
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const g = JSON.parse(reader.result);
       if (!g || !g.id || !g.q) throw new Error("invalid");
       ensureKeys(g);
-
       const list = loadGames();
-      const idx = list.findIndex((x) => x.id === g.id);
-      if (idx >= 0) list[idx] = g;
-      else list.unshift(g);
+      const idx = list.findIndex(x => x.id === g.id);
+      if (idx >= 0) list[idx] = g; else list.unshift(g);
       saveGames(list);
       games = list;
-
       state = g;
       history = [];
       render();
       toast("読み込みました");
     } catch {
-      toast("読み込み失敗：JSONが不正です");
+      toast("読み込みに失敗しました（JSON不正）");
     }
   };
   reader.readAsText(file, "utf-8");
 }
 
-// ---- Menu ----
-function toggleMenu(force) {
+// =====================
+// Targets modal
+// =====================
+function openTargets(){
+  $("targetsModal").style.display = "flex";
+  $("targetsModal").setAttribute("aria-hidden","false");
+  $("tgHalfOk").value = targets.half.ok;
+  $("tgHalfMid").value = targets.half.mid;
+  $("tgEarlyOk").value = targets.early.ok;
+  $("tgEarlyMid").value = targets.early.mid;
+  $("tgPaintOk").value = targets.paint.ok;
+  $("tgPaintMid").value = targets.paint.mid;
+  $("tgFoulOk").value = targets.foul.ok;
+  $("tgFoulMid").value = targets.foul.mid;
+}
+function closeTargets(){
+  $("targetsModal").style.display = "none";
+  $("targetsModal").setAttribute("aria-hidden","true");
+}
+function saveTargetsFromUI(){
+  const next = {
+    half:  { ok: safeNum01($("tgHalfOk").value, targets.half.ok),   mid: safeNum01($("tgHalfMid").value, targets.half.mid) },
+    early: { ok: safeNum01($("tgEarlyOk").value, targets.early.ok), mid: safeNum01($("tgEarlyMid").value, targets.early.mid) },
+    paint: { ok: safeNum01($("tgPaintOk").value, targets.paint.ok), mid: safeNum01($("tgPaintMid").value, targets.paint.mid) },
+    foul:  { ok: safeNum01($("tgFoulOk").value, targets.foul.ok),   mid: safeNum01($("tgFoulMid").value, targets.foul.mid) },
+  };
+
+  for (const k of Object.keys(next)){
+    if (next[k].ok < next[k].mid) return toast(`エラー：${k} は OK < MID です`);
+    if (next[k].ok < 0 || next[k].ok > 1 || next[k].mid < 0 || next[k].mid > 1) return toast(`エラー：${k} は 0〜1`);
+  }
+
+  targets = next;
+  saveTargets(targets);
+  closeTargets();
+  render();
+  toast("目標を保存しました");
+}
+function resetTargetsDefault(){
+  targets = defaultTargets();
+  saveTargets(targets);
+  openTargets();
+  render();
+  toast("初期値に戻しました");
+}
+
+// =====================
+// Menu toggle
+// =====================
+function toggleMenu(force){
   const panel = $("headerPanel");
-  if (!panel) return;
   const isOpen = panel.classList.contains("open");
-  const next = force == null ? !isOpen : force;
+  const next = (force==null) ? !isOpen : force;
   panel.classList.toggle("open", next);
 }
 
-// ---- Rendering ----
-function renderQuarterSelect() {
+// =====================
+// Rendering
+// =====================
+function renderQuarterSelect(){
   const sel = $("quarter");
-  if (!sel) return;
   sel.innerHTML = "";
-  QS.forEach((q) => {
+  QS.forEach(q=>{
     const opt = document.createElement("option");
     opt.value = q;
     opt.textContent = `${q}Q`;
@@ -464,151 +755,236 @@ function renderQuarterSelect() {
   if (!sel.value) sel.value = "1";
 }
 
-function renderGameSelect() {
+function renderGameSelect(){
   const sel = $("gameSelect");
-  if (!sel) return;
   sel.innerHTML = "";
-
   const list = loadGames();
-  games = list.length ? list : [state];
-  if (!list.length) saveGames(games);
-
-  games.forEach((g) => {
+  games = list;
+  if (!games.length){
+    games = [state];
+    saveGames(games);
+  }
+  games.forEach(g=>{
     const opt = document.createElement("option");
     opt.value = g.id;
-    opt.textContent = `${g.date || "----"}  ${g.name || "(無題)"}`;
+    opt.textContent = `${g.date || "----"}  ${g.opponent || "(相手未入力)"}`;
     if (g.id === state.id) opt.selected = true;
     sel.appendChild(opt);
   });
 }
 
-function renderTotalsKpiCards() {
+function renderTotals(){
   const k = computeKPIFromCounts(getCountsTotal());
-  if ($("kHalf")) $("kHalf").textContent = pct(k.half);
-  if ($("kEarly")) $("kEarly").textContent = pct(k.early);
-  if ($("kTotal")) $("kTotal").textContent = pct(k.total);
-  if ($("kFoul")) $("kFoul").textContent = pct(k.foul);
+  $("kHalf").textContent = pct(k.half);
+  $("kEarly").textContent = pct(k.early);
+  $("kPaint").textContent = pct(k.paint);
+  $("kFoul").textContent = pct(k.foul);
+
+  setBadge($("sHalf"), k.half, targets.half);
+  setBadge($("sEarly"), k.early, targets.early);
+  setBadge($("sPaint"), k.paint, targets.paint);
+  setBadge($("sFoul"), k.foul, targets.foul);
+
+  setTargetHint($("tHalf"), targets.half);
+  setTargetHint($("tEarly"), targets.early);
+  setTargetHint($("tPaint"), targets.paint);
+  setTargetHint($("tFoul"), targets.foul);
 }
 
-function renderCountsTable() {
+function renderCountsTable(){
   const tbody = $("qTable");
-  if (!tbody) return;
   tbody.innerHTML = "";
 
-  // Q別
-  QS.forEach((qq) => {
-    const r = state.q[qq] || { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 };
+  QS.forEach(qq=>{
+    const r = state.q[qq];
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${qq}Q</td>
-      <td class="mono">${r.H}</td><td class="mono">${r.B}</td><td class="mono">${r.C}</td>
-      <td class="mono">${r.D}</td><td class="mono">${r.E}</td><td class="mono">${r.T}</td><td class="mono">${r.TP}</td>`;
+      <td class="mono">${r.H}</td>
+      <td class="mono">${r.B}</td>
+      <td class="mono">${r.D}</td>
+      <td class="mono">${r.T}</td>
+      <td class="mono">${r.TP}</td>`;
     tbody.appendChild(tr);
   });
 
-  // 合計
   const tot = getCountsTotal();
-  const trTotal = document.createElement("tr");
-  trTotal.className = "totalRow";
-  trTotal.innerHTML = `<td>合計</td>
-    <td class="mono">${tot.H}</td><td class="mono">${tot.B}</td><td class="mono">${tot.C}</td>
-    <td class="mono">${tot.D}</td><td class="mono">${tot.E}</td><td class="mono">${tot.T}</td><td class="mono">${tot.TP}</td>`;
-  tbody.appendChild(trTotal);
+  const trT = document.createElement("tr");
+  trT.className = "totalRow";
+  trT.innerHTML = `<td>合計</td>
+    <td class="mono">${tot.H}</td>
+    <td class="mono">${tot.B}</td>
+    <td class="mono">${tot.D}</td>
+    <td class="mono">${tot.T}</td>
+    <td class="mono">${tot.TP}</td>`;
+  tbody.appendChild(trT);
 }
 
-function kpiCell(val, tg) {
+function kpiCell(val, tg){
   const cls = gradeClass(val, tg);
   return `<div class="kpiCell"><span class="dot ${cls}"></span><span class="mono">${pct(val)}</span></div>`;
 }
 
-function renderKpiTable() {
+function renderKpiTable(){
   const tbody = $("kpiTable");
-  if (!tbody) return;
   tbody.innerHTML = "";
 
-  const makeRow = (label, counts, isTotal = false) => {
-    const k = computeKPIFromCounts(counts);
+  const rows = [
+    ...QS.map(q => ({label:`${q}Q`, k: computeKPIFromCounts(getCountsForQuarter(q))})),
+    {label:"合計", k: computeKPIFromCounts(getCountsTotal()), total:true}
+  ];
+
+  rows.forEach(r=>{
     const tr = document.createElement("tr");
-    if (isTotal) tr.className = "totalRow";
+    if (r.total) tr.className = "totalRow";
     tr.innerHTML = `
-      <td>${isTotal ? "合計" : label}</td>
-      <td>${kpiCell(k.half, TARGETS.half)}</td>
-      <td>${kpiCell(k.early, TARGETS.early)}</td>
-      <td>${kpiCell(k.total, TARGETS.total)}</td>
-      <td>${kpiCell(k.foul, TARGETS.foul)}</td>
+      <td>${r.label}</td>
+      <td>${kpiCell(r.k.half, targets.half)}</td>
+      <td>${kpiCell(r.k.early, targets.early)}</td>
+      <td>${kpiCell(r.k.paint, targets.paint)}</td>
+      <td>${kpiCell(r.k.foul, targets.foul)}</td>
     `;
     tbody.appendChild(tr);
-  };
-
-  QS.forEach((q) => makeRow(`${q}Q`, getCountsForQuarter(q), false));
-  makeRow("合計", getCountsTotal(), true);
+  });
 }
 
-function render() {
-  if ($("gameName")) $("gameName").value = state.name || "";
-  if ($("gameDate")) $("gameDate").value = state.date || "";
-  if ($("memo")) $("memo").value = state.memo || "";
+function renderScoreTableAndCorr(){
+  const tbody = $("scoreTable");
+  tbody.innerHTML = "";
 
-  renderTotalsKpiCards();
+  const xs = []; // paint rate
+  const ys = []; // our points
+
+  QS.forEach(q=>{
+    const s = state.scores[q] || {us:null, them:null};
+    const k = computeKPIFromCounts(getCountsForQuarter(q));
+    const paint = k.paint;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${q}Q</td>
+      <td><input class="scoreInput mono" type="number" inputmode="numeric" min="0" id="us_${q}" placeholder="-" /></td>
+      <td><input class="scoreInput mono" type="number" inputmode="numeric" min="0" id="them_${q}" placeholder="-" /></td>
+      <td class="mono">${pct(paint)}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // set values
+    const usEl = tr.querySelector(`#us_${q}`);
+    const thEl = tr.querySelector(`#them_${q}`);
+    usEl.value = (s.us ?? "");
+    thEl.value = (s.them ?? "");
+
+    // events
+    const onChange = () => {
+      const us = usEl.value === "" ? null : Number(usEl.value);
+      const them = thEl.value === "" ? null : Number(thEl.value);
+      state.scores[q] = { us: Number.isFinite(us) ? us : null, them: Number.isFinite(them) ? them : null };
+      upsertState(true);
+      renderScoreTableAndCorr(); // update corr
+    };
+    usEl.addEventListener("change", onChange);
+    thEl.addEventListener("change", onChange);
+    usEl.addEventListener("blur", onChange);
+    thEl.addEventListener("blur", onChange);
+
+    // collect for corr if valid
+    if (s.us != null && Number.isFinite(s.us) && isFinite(paint)){
+      // paint is meaningful only if denominator exists; we allow 0 but it can skew; still ok.
+      xs.push(paint);
+      ys.push(s.us);
+    }
+  });
+
+  // total row for scores
+  const sumUs = QS.reduce((acc,q)=> acc + (Number.isFinite(state.scores[q]?.us) ? state.scores[q].us : 0), 0);
+  const sumThem = QS.reduce((acc,q)=> acc + (Number.isFinite(state.scores[q]?.them) ? state.scores[q].them : 0), 0);
+  const trT = document.createElement("tr");
+  trT.className = "totalRow";
+  trT.innerHTML = `<td>合計</td><td class="mono">${sumUs}</td><td class="mono">${sumThem}</td><td class="mono">-</td>`;
+  tbody.appendChild(trT);
+
+  const r = pearson(xs, ys);
+  const corrEl = $("corrVal");
+  const noteEl = $("corrNote");
+  if (r == null){
+    corrEl.textContent = "-";
+    noteEl.textContent = "（得点を2Q以上入力すると表示）";
+  } else {
+    const rr = Math.round(r*100)/100;
+    corrEl.textContent = rr.toFixed(2);
+    const abs = Math.abs(rr);
+    let txt = "（弱い）";
+    if (abs >= 0.7) txt = "（強い）";
+    else if (abs >= 0.4) txt = "（中くらい）";
+    noteEl.textContent = ` ${txt}  ${rr>0 ? "正の相関" : "負の相関"}`;
+  }
+}
+
+function render(){
+  $("opponent").value = state.opponent || "";
+  $("gameDate").value = state.date || "";
+  $("memo").value = state.memo || "";
+
+  renderTotals();
   renderCountsTable();
   renderKpiTable();
+  renderScoreTableAndCorr();
   renderGameSelect();
 }
 
-// ---- Wiring ----
-$("btnMenu")?.addEventListener("click", () => toggleMenu());
-$("btnQuickSave")?.addEventListener("click", () => upsertState(false));
+// =====================
+// Wiring
+// =====================
+$("btnMenu").addEventListener("click", ()=> toggleMenu());
+$("btnQuickSave").addEventListener("click", ()=> upsertState(false));
 
-$("btnH")?.addEventListener("click", () => inc("H"));
-$("btnB")?.addEventListener("click", () => inc("B"));
-$("btnC")?.addEventListener("click", () => inc("C"));
-$("btnD")?.addEventListener("click", () => inc("D"));
-$("btnE")?.addEventListener("click", () => inc("E"));
-$("btnT")?.addEventListener("click", () => inc("T"));
-$("btnTP")?.addEventListener("click", () => inc("TP"));
-$("btnUndo")?.addEventListener("click", undo);
+$("btnH").addEventListener("click", ()=> inc("H"));
+$("btnB").addEventListener("click", ()=> inc("B"));
+$("btnD").addEventListener("click", ()=> inc("D"));
+$("btnT").addEventListener("click", ()=> inc("T"));
+$("btnTP").addEventListener("click", ()=> inc("TP"));
+$("btnUndo").addEventListener("click", undo);
 
-$("btnNewGame")?.addEventListener("click", newGame);
-$("btnReset")?.addEventListener("click", deleteCurrentGame);
+$("gameSelect").addEventListener("change", (e)=> switchGame(e.target.value));
 
-$("btnExportFile")?.addEventListener("click", exportAsFile);
+$("btnNewGame").addEventListener("click", newGame);
+$("btnDeleteGame").addEventListener("click", deleteCurrentGame);
+$("btnExportFile").addEventListener("click", exportAsFile);
 
-$("btnImport")?.addEventListener("click", () => {
-  const input = $("fileInput");
-  if (!input) return;
-  input.accept = "application/json";
-  input.click();
-});
-$("fileInput")?.addEventListener("change", (e) => {
+$("btnImport").addEventListener("click", ()=> $("fileInput").click());
+$("fileInput").addEventListener("change", (e)=>{
   const f = e.target.files && e.target.files[0];
   if (f) importFromFile(f);
   e.target.value = "";
 });
 
-$("gameSelect")?.addEventListener("change", (e) => switchGame(e.target.value));
+$("btnTargets").addEventListener("click", openTargets);
+$("btnTargetsCancel").addEventListener("click", closeTargets);
+$("btnTargetsSave").addEventListener("click", saveTargetsFromUI);
+$("btnTargetsDefault").addEventListener("click", resetTargetsDefault);
+$("targetsModal").addEventListener("click", (e)=>{ if(e.target.id==="targetsModal") closeTargets(); });
 
-// auto-save on field edits
-["gameName", "gameDate", "memo"].forEach((id) => {
-  $(id)?.addEventListener("change", () => upsertState(true));
-  $(id)?.addEventListener("blur", () => upsertState(true));
+// auto-save on edits
+["opponent","gameDate","memo"].forEach(id=>{
+  $(id).addEventListener("change", ()=> upsertState(true));
+  $(id).addEventListener("blur", ()=> upsertState(true));
 });
-$("quarter")?.addEventListener("change", () => upsertState(true));
+$("quarter").addEventListener("change", ()=> upsertState(true));
 
-// ---- Init ----
+// =====================
+// Init
+// =====================
 renderQuarterSelect();
-
-if (!games.length) {
+if (!games.length){
   games = [state];
   saveGames(games);
 } else {
   state = games[0];
   ensureKeys(state);
 }
-
 render();
 toggleMenu(false);
-toast("起動しました（☰に入出力）");
-
+toast("更新版を起動しました");
 </script>
-
 </body>
 </html>
