@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>DD KPI Tracker（俊介）</title>
+
+<style>
+:root { --pad:12px; --r:14px; --shadow:0 6px 18px rgba(0,0,0,.08); }
+*{box-sizing:border-box;}
+body{
+font-family:-apple-system,system-ui,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+margin:0;background:#f6f7fb;color:#111;
+}
+
+/* ===== Header ===== */
+.appHeader{
+position:sticky;top:0;z-index:20;
+background:#fff;box-shadow:var(--shadow);
+padding:calc(8px + env(safe-area-inset-top)) var(--pad) 10px;
+}
+.headerTop{
+display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px;
+}
+.title{font-weight:900;font-size:15px;}
+.subtitle{font-size:11px;opacity:.65;}
+.iconBtn{
+width:44px;height:44px;border-radius:14px;border:1px solid #e6e9f2;
+background:#fff;font-size:18px;font-weight:900;
+}
+.iconBtn:active{transform:translateY(1px);}
+
+/* Always 1-line bar */
+.alwaysPanel{margin-top:10px;padding-top:10px;border-top:1px solid #edf0f7;}
+.oneLine{
+display:grid;
+grid-template-columns:1.8fr 1.05fr .55fr 1.4fr;
+gap:8px;align-items:end;
+}
+.oneLine label{font-size:11px;opacity:.75;margin-bottom:4px;}
+.oneLine input,.oneLine select{
+width:100%;border-radius:10px;border:1px solid #dfe3ee;
+padding:6px 10px;font-size:16px;background:#fff;
+}
+
+/* Menu */
+.headerPanel{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #edf0f7;}
+.headerPanel.open{display:block;}
+.panelGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.panelActions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media(max-width:560px){
+.panelGrid{grid-template-columns:1fr;}
+.panelActions{grid-template-columns:1fr;}
+}
+
+/* Layout */
+main{padding:var(--pad);max-width:1040px;margin:0 auto;}
+.grid{display:grid;gap:var(--pad);}
+@media(min-width:920px){.grid{grid-template-columns:1.15fr .85fr;}}
+
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:var(--pad);}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media(max-width:560px){
+.row3{grid-template-columns:1fr 1fr;}
+.row3>div:last-child{grid-column:1/-1;}
+}
+
+/* Buttons */
+button{
+width:100%;border:0;border-radius:14px;padding:16px 12px;
+font-size:16px;font-weight:900;
+box-shadow:var(--shadow);background:#111;color:#fff;
+}
+button.secondary{background:#fff;color:#111;border:1px solid #dfe3ee;box-shadow:none;}
+button.danger{background:#d11;}
+button:active{transform:translateY(1px);}
+
+.hr{height:1px;background:#edf0f7;margin:12px 0;}
+.small{font-size:12px;opacity:.78;}
+.mono{font-variant-numeric:tabular-nums;}
+.chip{padding:3px 8px;border:1px solid #dfe3ee;border-radius:999px;font-size:12px;font-weight:900;background:#fff;}
+
+/* KPI Cards */
+.statGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.stat{background:#f6f7fb;border:1px solid #e6e9f2;border-radius:14px;padding:10px;}
+.stat .k{font-size:12px;opacity:.75;}
+.stat .v{font-size:22px;font-weight:900;margin-top:2px;}
+.pill{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;}
+.ok{background:#e7f7ea;color:#116b2a;}
+.mid{background:#fff6dd;color:#7a4d00;}
+.bad{background:#ffe5e5;color:#8a0f0f;}
+
+/* Tables */
+.tableWrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:8px 6px;border-bottom:1px solid #edf0f7;font-size:13px;}
+th{opacity:.7;font-weight:900;}
+.totalRow td{background:#f6f7fb;font-weight:900;}
+
+.kpiCell{display:flex;align-items:center;gap:6px;}
+.dot{width:10px;height:10px;border-radius:999px;}
+.dot.ok{background:#2dbf4f;}
+.dot.mid{background:#f0b429;}
+.dot.bad{background:#e03b3b;}
+
+.toast{
+position:fixed;left:50%;bottom:16px;
+transform:translateX(-50%);
+background:rgba(17,17,17,.92);
+color:#fff;padding:10px 12px;border-radius:999px;
+font-size:13px;opacity:0;transition:.2s;
+}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<header class="appHeader">
+<div class="headerTop">
+<button class="iconBtn" id="btnMenu">☰</button>
+<div>
+<div class="title">DD KPI Tracker（俊介）</div>
+<div class="subtitle">Half最重要 / Q別＋合計表示</div>
+</div>
+<button class="iconBtn" id="btnQuickSave">💾</button>
+</div>
+
+<div class="alwaysPanel">
+<div class="oneLine">
+<div><label>試合名</label><input id="gameName"></div>
+<div><label>日付</label><input id="gameDate" type="date"></div>
+<div><label>Q</label><select id="quarter"></select></div>
+<div><label>メモ</label><input id="memo"></div>
+</div>
+</div>
+
+<div class="headerPanel" id="headerPanel">
+<div class="panelGrid">
+<div><label>試合選択</label><select id="gameSelect"></select></div>
+<div><button id="btnNewGame">新しい試合</button></div>
+</div>
+<div class="panelActions" style="margin-top:10px;">
+<button id="btnExportFile" class="secondary">エクスポート</button>
+<button id="btnImport" class="secondary">インポート</button>
+<button id="btnReset" class="danger">この試合削除</button>
+</div>
+<input id="fileInput" type="file" style="display:none;">
+</div>
+</header>
+
+<main>
+<div class="grid">
+
+<section class="card">
+<div class="row3">
+<div><label>Half関与(H)</label><button id="btnH">+1</button></div>
+<div><label>Half Paint(B)</label><button id="btnB">+1</button></div>
+<div><label>Collapse(C)</label><button id="btnC">+1</button></div>
+</div>
+<div class="row3" style="margin-top:10px;">
+<div><label>Foul(D)</label><button id="btnD">+1</button></div>
+<div><label>2nd(E)</label><button id="btnE">+1</button></div>
+<div><label>Trans(T)</label><button id="btnT">+1</button></div>
+</div>
+<div class="row3" style="margin-top:10px;">
+<div><label>TransPaint(TP)</label><button id="btnTP">+1</button></div>
+<div><label>Undo</label><button id="btnUndo" class="secondary">戻す</button></div>
+</div>
+</section>
+
+<aside class="card">
+<div class="statGrid">
+<div class="stat"><div class="k">Half合計</div><div class="v mono" id="kHalf"></div></div>
+<div class="stat"><div class="k">Early合計</div><div class="v mono" id="kEarly"></div></div>
+<div class="stat"><div class="k">Total合計</div><div class="v mono" id="kTotal"></div></div>
+<div class="stat"><div class="k">Foul合計</div><div class="v mono" id="kFoul"></div></div>
+</div>
+
+<div class="hr"></div>
+
+<div class="tableWrap">
+<table>
+<thead><tr><th>Q</th><th>H</th><th>B</th><th>C</th><th>D</th><th>E</th><th>T</th><th>TP</th></tr></thead>
+<tbody id="qTable"></tbody>
+</table>
+</div>
+
+<div class="hr"></div>
+
+<div class="tableWrap">
+<table>
+<thead><tr><th>Q</th><th>Half</th><th>Early</th><th>Total</th><th>Foul</th></tr></thead>
+<tbody id="kpiTable"></tbody>
+</table>
+</div>
+</aside>
+
+</div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================
+// DD KPI Tracker JS (for the index.html you貼った版)
+// - HalfとTransは独立: Half=B/H, Early=TP/T
+// - Foul = D/(B+TP)
+// - 回数テーブルに合計行
+// - KPIテーブルにQ別＋合計行
+// - メニューに 新規/Export/Import/削除/試合切替
+// =====================
+
+// ---- Storage keys ----
+const STORAGE_GAMES = "dd_kpi_games_v7_1file";
+
+// ---- Q / keys ----
+const QS = ["1", "2", "3", "4"];
+const KEYS = ["H", "B", "C", "D", "E", "T", "TP"];
+const $ = (id) => document.getElementById(id);
+
+// ---- Simple thresholds (色付け用) ----
+const TARGETS = {
+  half:   { ok: 0.55, mid: 0.50 }, // B/H
+  early:  { ok: 0.80, mid: 0.65 }, // TP/T
+  total:  { ok: 0.60, mid: 0.50 }, // (B+TP)/(H+T)
+  foul:   { ok: 0.25, mid: 0.18 }, // D/(B+TP)
+};
+
+// ---- Toast ----
+let toastTimer = null;
+function toast(msg) {
+  const el = $("toast");
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1400);
+}
+
+// ---- Data model ----
+function blankGame() {
+  const q = {};
+  QS.forEach((k) => (q[k] = { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 }));
+  return {
+    id: String(Date.now()),
+    name: "",
+    date: new Date().toISOString().slice(0, 10),
+    memo: "",
+    createdAt: new Date().toISOString(),
+    q,
+  };
+}
+
+function loadGames() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_GAMES) || "[]");
+  } catch {
+    return [];
+  }
+}
+function saveGames(list) {
+  localStorage.setItem(STORAGE_GAMES, JSON.stringify(list));
+}
+function ensureKeys(game) {
+  if (!game.q) game.q = {};
+  QS.forEach((qq) => {
+    if (!game.q[qq]) game.q[qq] = { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 };
+    KEYS.forEach((k) => {
+      if (game.q[qq][k] == null) game.q[qq][k] = 0;
+    });
+  });
+}
+
+// ---- App state ----
+let games = loadGames();
+let state = games[0] || blankGame();
+ensureKeys(state);
+let history = []; // undo stack: {q, key}
+
+// ---- Helpers ----
+const pct = (x) => (isFinite(x) ? Math.round(x * 100) : 0) + "%";
+
+function gradeClass(val, tg) {
+  if (val >= tg.ok) return "ok";
+  if (val >= tg.mid) return "mid";
+  return "bad";
+}
+
+function sumKey(key) {
+  return QS.reduce((s, qq) => s + (state.q[qq]?.[key] || 0), 0);
+}
+function getCountsForQuarter(q) {
+  return { ...(state.q[q] || { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 }) };
+}
+function getCountsTotal() {
+  const out = { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 };
+  KEYS.forEach((k) => (out[k] = sumKey(k)));
+  return out;
+}
+
+function computeKPIFromCounts(c) {
+  const H = c.H || 0;
+  const B = c.B || 0;
+  const D = c.D || 0;
+  const T = c.T || 0;
+  const TP = c.TP || 0;
+
+  const half = H ? B / H : 0;                 // Half Paint Rate
+  const early = T ? TP / T : 0;               // Early Paint Rate
+  const totalDen = H + T;
+  const total = totalDen ? (B + TP) / totalDen : 0;  // Total Paint Rate
+  const foulDen = B + TP;
+  const foul = foulDen ? D / foulDen : 0;     // Foul Rate (B+TP)
+
+  return { half, early, total, foul };
+}
+
+// ---- Persistence ----
+function upsertState(auto = false) {
+  state.name = ($("gameName")?.value || "").trim();
+  state.date = $("gameDate")?.value || state.date;
+  state.memo = ($("memo")?.value || "").trim();
+
+  const list = loadGames();
+  const idx = list.findIndex((g) => g.id === state.id);
+  if (idx >= 0) list[idx] = state;
+  else list.unshift(state);
+  saveGames(list);
+  games = list;
+
+  if (!auto) toast("保存しました（端末内）");
+}
+
+function switchGame(id) {
+  upsertState(true);
+  const list = loadGames();
+  const found = list.find((g) => g.id === id);
+  if (!found) return;
+  ensureKeys(found);
+  state = found;
+  history = [];
+  render();
+  toast("試合を切り替えました");
+}
+
+function newGame() {
+  upsertState(true);
+  state = blankGame();
+  ensureKeys(state);
+  history = [];
+
+  const list = loadGames();
+  list.unshift(state);
+  saveGames(list);
+  games = list;
+
+  if ($("quarter")) $("quarter").value = "1";
+  render();
+  toast("新しい試合を作成");
+}
+
+function deleteCurrentGame() {
+  if (!confirm("この試合の記録を消去します。よろしいですか？")) return;
+  const list = loadGames().filter((g) => g.id !== state.id);
+  saveGames(list);
+  games = list;
+
+  state = list[0] || blankGame();
+  ensureKeys(state);
+  history = [];
+  render();
+  toast("この試合を消去しました");
+}
+
+// ---- Counters ----
+function inc(key) {
+  const q = $("quarter")?.value || "1";
+  state.q[q][key] += 1;
+  history.push({ q, key });
+  render();
+  upsertState(true);
+}
+
+function undo() {
+  const last = history.pop();
+  if (!last) return toast("戻す履歴がありません");
+  const { q, key } = last;
+  state.q[q][key] = Math.max(0, state.q[q][key] - 1);
+  render();
+  upsertState(true);
+  toast("1つ戻しました");
+}
+
+// ---- Export / Import ----
+function filenameForGame(g) {
+  const safeName = (g.name || "game").replace(/[\\\/:*?"<>|]/g, "_").slice(0, 60);
+  const d = g.date || new Date().toISOString().slice(0, 10);
+  return `DDKPI_${d}_${safeName}.json`;
+}
+
+function exportAsFile() {
+  upsertState(true);
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filenameForGame(state);
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 0);
+  toast("エクスポート開始");
+}
+
+function importFromFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const g = JSON.parse(reader.result);
+      if (!g || !g.id || !g.q) throw new Error("invalid");
+      ensureKeys(g);
+
+      const list = loadGames();
+      const idx = list.findIndex((x) => x.id === g.id);
+      if (idx >= 0) list[idx] = g;
+      else list.unshift(g);
+      saveGames(list);
+      games = list;
+
+      state = g;
+      history = [];
+      render();
+      toast("読み込みました");
+    } catch {
+      toast("読み込み失敗：JSONが不正です");
+    }
+  };
+  reader.readAsText(file, "utf-8");
+}
+
+// ---- Menu ----
+function toggleMenu(force) {
+  const panel = $("headerPanel");
+  if (!panel) return;
+  const isOpen = panel.classList.contains("open");
+  const next = force == null ? !isOpen : force;
+  panel.classList.toggle("open", next);
+}
+
+// ---- Rendering ----
+function renderQuarterSelect() {
+  const sel = $("quarter");
+  if (!sel) return;
+  sel.innerHTML = "";
+  QS.forEach((q) => {
+    const opt = document.createElement("option");
+    opt.value = q;
+    opt.textContent = `${q}Q`;
+    sel.appendChild(opt);
+  });
+  if (!sel.value) sel.value = "1";
+}
+
+function renderGameSelect() {
+  const sel = $("gameSelect");
+  if (!sel) return;
+  sel.innerHTML = "";
+
+  const list = loadGames();
+  games = list.length ? list : [state];
+  if (!list.length) saveGames(games);
+
+  games.forEach((g) => {
+    const opt = document.createElement("option");
+    opt.value = g.id;
+    opt.textContent = `${g.date || "----"}  ${g.name || "(無題)"}`;
+    if (g.id === state.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderTotalsKpiCards() {
+  const k = computeKPIFromCounts(getCountsTotal());
+  if ($("kHalf")) $("kHalf").textContent = pct(k.half);
+  if ($("kEarly")) $("kEarly").textContent = pct(k.early);
+  if ($("kTotal")) $("kTotal").textContent = pct(k.total);
+  if ($("kFoul")) $("kFoul").textContent = pct(k.foul);
+}
+
+function renderCountsTable() {
+  const tbody = $("qTable");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  // Q別
+  QS.forEach((qq) => {
+    const r = state.q[qq] || { H: 0, B: 0, C: 0, D: 0, E: 0, T: 0, TP: 0 };
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${qq}Q</td>
+      <td class="mono">${r.H}</td><td class="mono">${r.B}</td><td class="mono">${r.C}</td>
+      <td class="mono">${r.D}</td><td class="mono">${r.E}</td><td class="mono">${r.T}</td><td class="mono">${r.TP}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // 合計
+  const tot = getCountsTotal();
+  const trTotal = document.createElement("tr");
+  trTotal.className = "totalRow";
+  trTotal.innerHTML = `<td>合計</td>
+    <td class="mono">${tot.H}</td><td class="mono">${tot.B}</td><td class="mono">${tot.C}</td>
+    <td class="mono">${tot.D}</td><td class="mono">${tot.E}</td><td class="mono">${tot.T}</td><td class="mono">${tot.TP}</td>`;
+  tbody.appendChild(trTotal);
+}
+
+function kpiCell(val, tg) {
+  const cls = gradeClass(val, tg);
+  return `<div class="kpiCell"><span class="dot ${cls}"></span><span class="mono">${pct(val)}</span></div>`;
+}
+
+function renderKpiTable() {
+  const tbody = $("kpiTable");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const makeRow = (label, counts, isTotal = false) => {
+    const k = computeKPIFromCounts(counts);
+    const tr = document.createElement("tr");
+    if (isTotal) tr.className = "totalRow";
+    tr.innerHTML = `
+      <td>${isTotal ? "合計" : label}</td>
+      <td>${kpiCell(k.half, TARGETS.half)}</td>
+      <td>${kpiCell(k.early, TARGETS.early)}</td>
+      <td>${kpiCell(k.total, TARGETS.total)}</td>
+      <td>${kpiCell(k.foul, TARGETS.foul)}</td>
+    `;
+    tbody.appendChild(tr);
+  };
+
+  QS.forEach((q) => makeRow(`${q}Q`, getCountsForQuarter(q), false));
+  makeRow("合計", getCountsTotal(), true);
+}
+
+function render() {
+  if ($("gameName")) $("gameName").value = state.name || "";
+  if ($("gameDate")) $("gameDate").value = state.date || "";
+  if ($("memo")) $("memo").value = state.memo || "";
+
+  renderTotalsKpiCards();
+  renderCountsTable();
+  renderKpiTable();
+  renderGameSelect();
+}
+
+// ---- Wiring ----
+$("btnMenu")?.addEventListener("click", () => toggleMenu());
+$("btnQuickSave")?.addEventListener("click", () => upsertState(false));
+
+$("btnH")?.addEventListener("click", () => inc("H"));
+$("btnB")?.addEventListener("click", () => inc("B"));
+$("btnC")?.addEventListener("click", () => inc("C"));
+$("btnD")?.addEventListener("click", () => inc("D"));
+$("btnE")?.addEventListener("click", () => inc("E"));
+$("btnT")?.addEventListener("click", () => inc("T"));
+$("btnTP")?.addEventListener("click", () => inc("TP"));
+$("btnUndo")?.addEventListener("click", undo);
+
+$("btnNewGame")?.addEventListener("click", newGame);
+$("btnReset")?.addEventListener("click", deleteCurrentGame);
+
+$("btnExportFile")?.addEventListener("click", exportAsFile);
+
+$("btnImport")?.addEventListener("click", () => {
+  const input = $("fileInput");
+  if (!input) return;
+  input.accept = "application/json";
+  input.click();
+});
+$("fileInput")?.addEventListener("change", (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) importFromFile(f);
+  e.target.value = "";
+});
+
+$("gameSelect")?.addEventListener("change", (e) => switchGame(e.target.value));
+
+// auto-save on field edits
+["gameName", "gameDate", "memo"].forEach((id) => {
+  $(id)?.addEventListener("change", () => upsertState(true));
+  $(id)?.addEventListener("blur", () => upsertState(true));
+});
+$("quarter")?.addEventListener("change", () => upsertState(true));
+
+// ---- Init ----
+renderQuarterSelect();
+
+if (!games.length) {
+  games = [state];
+  saveGames(games);
+} else {
+  state = games[0];
+  ensureKeys(state);
+}
+
+render();
+toggleMenu(false);
+toast("起動しました（☰に入出力）");
+
+</script>
+
+</body>
+</html>
