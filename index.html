@@ -195,7 +195,7 @@ input[type="text"]{
 
     <div class="titleWrap">
       <div class="title">DD KPI Tracker（俊介）</div>
-      <div class="subtitle">Half最重要。Q別＋合計。得点相関も見る。</div>
+      <div class="subtitle">Half最重要。EPT/EPTRも見る。</div>
     </div>
 
     <button class="iconBtn" id="btnQuickSave" aria-label="保存" type="button">💾</button>
@@ -241,6 +241,7 @@ input[type="text"]{
       <div class="small muted" style="margin-top:8px;">
         Half Paint Rate = <span class="chip">HP/H</span>　
         Early Paint Rate = <span class="chip">TP/T</span>　
+        EPTR = <span class="chip">EPT/(HP+TP)</span>　
         Foul Rate = <span class="chip">F/(HP+TP)</span>
       </div>
     </div>
@@ -263,19 +264,28 @@ input[type="text"]{
       <div class="row3">
         <div><label>Half関与（H）</label><button id="btnH" type="button">+1</button></div>
         <div><label>Half Paint（HP）</label><button id="btnB" type="button">+1</button></div>
-        <div><label>Foul（F）</label><button id="btnD" type="button">+1</button></div>
+        <div><label>EPT（Effective Paint Touch）</label><button id="btnEPT" type="button">+1</button></div>
       </div>
 
       <div class="row3" style="margin-top:10px">
+        <div><label>Foul（F）</label><button id="btnD" type="button">+1</button></div>
         <div><label>Trans関与（T）</label><button id="btnT" type="button">+1</button></div>
         <div><label>TransPaint（TP）</label><button id="btnTP" type="button">+1</button></div>
+      </div>
+
+      <div class="row3" style="margin-top:10px">
         <div><label>Undo</label><button class="secondary" id="btnUndo" type="button">1つ戻す</button></div>
+        <div class="small muted" style="display:flex;align-items:end;">（Undoは最後の+1だけ戻す）</div>
+        <div></div>
       </div>
 
       <div class="hr"></div>
       <div class="small">
-        <b>操作ルール：</b>速攻で中に触ったら <span class="chip">T</span> と <span class="chip">TP</span> を両方 +1。<br/>
-        Half侵入は <span class="chip">H</span> を +1、ペイントまで入ったら <span class="chip">HP</span> も +1。
+        <b>操作ルール：</b><br/>
+        ・速攻で中に触ったら <span class="chip">T</span> と <span class="chip">TP</span> を両方 +1。<br/>
+        ・Half侵入は <span class="chip">H</span> を +1、ペイントまで入ったら <span class="chip">HP</span> も +1。<br/>
+        ・<b>EPT</b> は「効果的なペイントタッチ」（得点/FT/明確な崩し/良いキックアウト）など +1。<br/>
+        ・EPTR = <span class="chip">EPT / (HP+TP)</span>
       </div>
     </section>
 
@@ -297,6 +307,13 @@ input[type="text"]{
         </div>
 
         <div class="stat">
+          <div class="k">EPTR（合計）</div>
+          <div class="v mono" id="kEptr">0%</div>
+          <div class="pill" id="sEptr">-</div>
+          <div class="targetHint" id="tEptr"></div>
+        </div>
+
+        <div class="stat">
           <div class="k">Paint Rate（合計）</div>
           <div class="v mono" id="kPaint">0%</div>
           <div class="pill" id="sPaint">-</div>
@@ -309,6 +326,12 @@ input[type="text"]{
           <div class="pill" id="sFoul">-</div>
           <div class="targetHint" id="tFoul"></div>
         </div>
+
+        <div class="stat">
+          <div class="k">Counts（合計）</div>
+          <div class="small muted mono" id="kCounts">-</div>
+          <div class="small muted">H / HP / EPT / T / TP</div>
+        </div>
       </div>
 
       <div class="hr"></div>
@@ -316,7 +339,7 @@ input[type="text"]{
       <div class="tableWrap">
         <table>
           <thead>
-            <tr><th>Q</th><th>H</th><th>HP</th><th>F</th><th>T</th><th>TP</th></tr>
+            <tr><th>Q</th><th>H</th><th>HP</th><th>EPT</th><th>F</th><th>T</th><th>TP</th></tr>
           </thead>
           <tbody id="qTable"></tbody>
         </table>
@@ -331,6 +354,7 @@ input[type="text"]{
               <th>Q</th>
               <th>Half</th>
               <th>Early</th>
+              <th>EPTR</th>
               <th>Paint</th>
               <th>Foul</th>
             </tr>
@@ -390,6 +414,12 @@ input[type="text"]{
     </div>
 
     <div class="row3" style="margin-top:10px;">
+      <div><label>EPTR OK</label><input id="tgEptrOk" type="text" /></div>
+      <div><label>EPTR MID</label><input id="tgEptrMid" type="text" /></div>
+      <div class="small muted" style="display:flex;align-items:end;">例：OK=0.45 / MID=0.35</div>
+    </div>
+
+    <div class="row3" style="margin-top:10px;">
       <div><label>Paint OK</label><input id="tgPaintOk" type="text" /></div>
       <div><label>Paint MID</label><input id="tgPaintMid" type="text" /></div>
       <div class="small muted" style="display:flex;align-items:end;">例：OK=0.60 / MID=0.50</div>
@@ -419,14 +449,15 @@ input[type="text"]{
 // =====================
 // Storage keys
 // =====================
-const STORAGE_GAMES = "dd_kpi_games_v9";
-const STORAGE_TARGETS = "dd_kpi_targets_v9";
+const STORAGE_GAMES = "dd_kpi_games_v10";
+const STORAGE_TARGETS = "dd_kpi_targets_v10";
 
 // =====================
 // Q / keys (表示はHP/Fだが内部はB/Dのまま＝互換維持)
+// EPT追加
 // =====================
 const QS = ["1","2","3","4"];
-const KEYS = ["H","B","D","T","TP"]; // H=Half involvement, B=HalfPaint(=HP), D=Foul(=F), T=Trans involvement, TP=Trans paint
+const KEYS = ["H","B","EPT","D","T","TP"]; // H=Half involvement, B=HalfPaint(=HP), EPT=Effective Paint Touch, D=Foul(=F), T=Trans involvement, TP=Trans paint
 const $ = (id) => document.getElementById(id);
 
 // =====================
@@ -448,6 +479,7 @@ function toast(msg){
 const defaultTargets = () => ({
   half:  { ok: 0.55, mid: 0.50 }, // B/H
   early: { ok: 0.80, mid: 0.65 }, // TP/T
+  eptr:  { ok: 0.45, mid: 0.35 }, // EPT/(B+TP)
   paint: { ok: 0.60, mid: 0.50 }, // (B+TP)/(H+T)
   foul:  { ok: 0.25, mid: 0.18 }, // D/(B+TP)
 });
@@ -468,7 +500,7 @@ function blankGame(){
   const q = {};
   const scores = {};
   QS.forEach(k=>{
-    q[k] = {H:0,B:0,D:0,T:0,TP:0};
+    q[k] = {H:0,B:0,EPT:0,D:0,T:0,TP:0};
     scores[k] = {us:null, them:null};
   });
   return {
@@ -494,10 +526,10 @@ function ensureKeys(game){
   if(!game.q) game.q = {};
   if(!game.scores) game.scores = {};
   QS.forEach(qq=>{
-    if(!game.q[qq]) game.q[qq] = {H:0,B:0,D:0,T:0,TP:0};
+    if(!game.q[qq]) game.q[qq] = {H:0,B:0,EPT:0,D:0,T:0,TP:0};
     if(!game.scores[qq]) game.scores[qq] = {us:null, them:null};
 
-    // migration: older keys A/C/E etc. ignored; ensure required keys exist
+    // ensure required keys exist (migration)
     KEYS.forEach(k=>{
       if(game.q[qq][k] == null) game.q[qq][k] = 0;
     });
@@ -543,23 +575,29 @@ function sumKey(key){
   return QS.reduce((s,qq)=> s + (state.q[qq]?.[key] || 0), 0);
 }
 function getCountsForQuarter(q){
-  return { ...(state.q[q] || {H:0,B:0,D:0,T:0,TP:0}) };
+  return { ...(state.q[q] || {H:0,B:0,EPT:0,D:0,T:0,TP:0}) };
 }
 function getCountsTotal(){
-  const out = {H:0,B:0,D:0,T:0,TP:0};
+  const out = {H:0,B:0,EPT:0,D:0,T:0,TP:0};
   KEYS.forEach(k => out[k] = sumKey(k));
   return out;
 }
 
 function computeKPIFromCounts(c){
-  const H = c.H||0, B=c.B||0, D=c.D||0, T=c.T||0, TP=c.TP||0;
+  const H = c.H||0, B=c.B||0, EPT=c.EPT||0, D=c.D||0, T=c.T||0, TP=c.TP||0;
+
   const half = H ? (B/H) : 0;
   const early = T ? (TP/T) : 0;
-  const denPaint = (H+T);
-  const paint = denPaint ? ((B+TP)/denPaint) : 0;
-  const denFoul = (B+TP);
-  const foul = denFoul ? (D/denFoul) : 0;
-  return {half, early, paint, foul};
+
+  const denHP = (B + TP);              // HP+TP
+  const eptr = denHP ? (EPT/denHP) : 0;
+
+  const denPaint = (H + T);
+  const paint = denPaint ? (denHP/denPaint) : 0;
+
+  const foul = denHP ? (D/denHP) : 0;
+
+  return {half, early, eptr, paint, foul};
 }
 
 function pearson(xs, ys){
@@ -705,6 +743,8 @@ function openTargets(){
   $("tgHalfMid").value = targets.half.mid;
   $("tgEarlyOk").value = targets.early.ok;
   $("tgEarlyMid").value = targets.early.mid;
+  $("tgEptrOk").value = targets.eptr.ok;
+  $("tgEptrMid").value = targets.eptr.mid;
   $("tgPaintOk").value = targets.paint.ok;
   $("tgPaintMid").value = targets.paint.mid;
   $("tgFoulOk").value = targets.foul.ok;
@@ -718,6 +758,7 @@ function saveTargetsFromUI(){
   const next = {
     half:  { ok: safeNum01($("tgHalfOk").value, targets.half.ok),   mid: safeNum01($("tgHalfMid").value, targets.half.mid) },
     early: { ok: safeNum01($("tgEarlyOk").value, targets.early.ok), mid: safeNum01($("tgEarlyMid").value, targets.early.mid) },
+    eptr:  { ok: safeNum01($("tgEptrOk").value, targets.eptr.ok),   mid: safeNum01($("tgEptrMid").value, targets.eptr.mid) },
     paint: { ok: safeNum01($("tgPaintOk").value, targets.paint.ok), mid: safeNum01($("tgPaintMid").value, targets.paint.mid) },
     foul:  { ok: safeNum01($("tgFoulOk").value, targets.foul.ok),   mid: safeNum01($("tgFoulMid").value, targets.foul.mid) },
   };
@@ -785,21 +826,28 @@ function renderGameSelect(){
 }
 
 function renderTotals(){
-  const k = computeKPIFromCounts(getCountsTotal());
+  const tot = getCountsTotal();
+  const k = computeKPIFromCounts(tot);
+
   $("kHalf").textContent = pct(k.half);
   $("kEarly").textContent = pct(k.early);
+  $("kEptr").textContent = pct(k.eptr);
   $("kPaint").textContent = pct(k.paint);
   $("kFoul").textContent = pct(k.foul);
 
   setBadge($("sHalf"), k.half, targets.half);
   setBadge($("sEarly"), k.early, targets.early);
+  setBadge($("sEptr"), k.eptr, targets.eptr);
   setBadge($("sPaint"), k.paint, targets.paint);
   setBadge($("sFoul"), k.foul, targets.foul);
 
   setTargetHint($("tHalf"), targets.half);
   setTargetHint($("tEarly"), targets.early);
+  setTargetHint($("tEptr"), targets.eptr);
   setTargetHint($("tPaint"), targets.paint);
   setTargetHint($("tFoul"), targets.foul);
+
+  $("kCounts").textContent = `${tot.H} / ${tot.B} / ${tot.EPT} / ${tot.T} / ${tot.TP}`;
 }
 
 function renderCountsTable(){
@@ -812,6 +860,7 @@ function renderCountsTable(){
     tr.innerHTML = `<td>${qq}Q</td>
       <td class="mono">${r.H}</td>
       <td class="mono">${r.B}</td>
+      <td class="mono">${r.EPT}</td>
       <td class="mono">${r.D}</td>
       <td class="mono">${r.T}</td>
       <td class="mono">${r.TP}</td>`;
@@ -824,6 +873,7 @@ function renderCountsTable(){
   trT.innerHTML = `<td>合計</td>
     <td class="mono">${tot.H}</td>
     <td class="mono">${tot.B}</td>
+    <td class="mono">${tot.EPT}</td>
     <td class="mono">${tot.D}</td>
     <td class="mono">${tot.T}</td>
     <td class="mono">${tot.TP}</td>`;
@@ -851,6 +901,7 @@ function renderKpiTable(){
       <td>${r.label}</td>
       <td>${kpiCell(r.k.half, targets.half)}</td>
       <td>${kpiCell(r.k.early, targets.early)}</td>
+      <td>${kpiCell(r.k.eptr, targets.eptr)}</td>
       <td>${kpiCell(r.k.paint, targets.paint)}</td>
       <td>${kpiCell(r.k.foul, targets.foul)}</td>
     `;
@@ -949,6 +1000,7 @@ $("btnQuickSave").addEventListener("click", ()=> upsertState(false));
 
 $("btnH").addEventListener("click", ()=> inc("H"));
 $("btnB").addEventListener("click", ()=> inc("B"));
+$("btnEPT").addEventListener("click", ()=> inc("EPT"));
 $("btnD").addEventListener("click", ()=> inc("D"));
 $("btnT").addEventListener("click", ()=> inc("T"));
 $("btnTP").addEventListener("click", ()=> inc("TP"));
@@ -979,8 +1031,6 @@ $("targetsModal").addEventListener("click", (e)=>{ if(e.target.id==="targetsModa
 });
 $("quarter").addEventListener("change", ()=> upsertState(true));
 
-$("btnImport").addEventListener("click", ()=> $("fileInput").click());
-
 // =====================
 // Init
 // =====================
@@ -994,7 +1044,7 @@ if (!games.length){
 }
 render();
 toggleMenu(false);
-toast("更新版を起動しました");
+toast("EPT/EPTR 追加版を起動しました");
 </script>
 </body>
 </html>
