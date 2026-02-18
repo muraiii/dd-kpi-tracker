@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>DD KPI Tracker（俊介）</title>
+<title>DD KPI Tracker</title>
 
 <style>
 :root { --pad:12px; --r:14px; --shadow:0 6px 18px rgba(0,0,0,.08); }
@@ -39,25 +39,6 @@ body{
   display:flex;align-items:center;justify-content:center;
 }
 
-/* Always 1-line bar */
-.alwaysPanel{margin-top:10px;padding-top:10px;border-top:1px solid #edf0f7;}
-.oneLine{
-  display:grid;
-  /* 相手チーム入力を“短め”にして全体を締める */
-  grid-template-columns: 1.25fr .95fr .55fr 1.35fr; /* opponent / date / Q / memo */
-  gap:8px;align-items:end;
-}
-.oneLine label{font-size:11px;opacity:.75;margin-bottom:4px;}
-.oneLine input,.oneLine select{
-  width:100%;
-  border-radius:10px;border:1px solid #dfe3ee;
-  padding:6px 8px;font-size:16px;background:#fff;
-}
-@media(max-width:420px){
-  .oneLine{grid-template-columns:1.1fr .95fr .55fr 1.1fr;gap:6px;}
-  .oneLine input,.oneLine select{padding:6px 7px;}
-}
-
 /* Menu */
 .headerPanel{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #edf0f7;}
 .headerPanel.open{display:block;}
@@ -66,7 +47,7 @@ body{
 .menuActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
 @media(max-width:560px){.menuActions{grid-template-columns:1fr;}}
 
-/* 小さめメニューボタン */
+/* small menu buttons */
 .menuBtn{
   width:100%;
   border-radius:12px;
@@ -82,6 +63,31 @@ body{
 }
 .menuBtn.danger{
   background:#d11;color:#fff;border:0;box-shadow:var(--shadow);
+}
+
+/* menu form (2 columns; collapses to 1 on small screens) */
+.menuForm{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid #edf0f7;
+}
+.menuRow2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  align-items:end;
+}
+.menuRow2 label{font-size:12px;opacity:.75;display:block;margin-bottom:6px;}
+.menuRow2 input,.menuRow2 select{
+  width:100%;
+  border-radius:10px;
+  border:1px solid #dfe3ee;
+  padding:8px 10px;
+  font-size:16px;
+  background:#fff;
+}
+@media(max-width:420px){
+  .menuRow2{ grid-template-columns: 1fr; }
 }
 
 /* Layout */
@@ -129,13 +135,11 @@ table{width:100%;border-collapse:collapse;}
 th,td{padding:8px 6px;border-bottom:1px solid #edf0f7;font-size:13px;text-align:left;}
 th{opacity:.7;font-weight:900;}
 .totalRow td{background:#f6f7fb;font-weight:900;}
-
 .kpiCell{display:flex;align-items:center;gap:6px;}
 .dot{width:10px;height:10px;border-radius:999px;border:1px solid rgba(0,0,0,.08);}
 .dot.ok{background:#2dbf4f;}
 .dot.mid{background:#f0b429;}
 .dot.bad{background:#e03b3b;}
-
 .scoreInput{
   width:72px;
   padding:6px 8px;
@@ -197,34 +201,6 @@ input[type="text"]{
     <button class="iconBtn" id="btnQuickSave" aria-label="保存" type="button">💾</button>
   </div>
 
-  <!-- 常時表示（1行） -->
-  <div class="alwaysPanel">
-    <div class="oneLine">
-      <div class="field">
-        <label>相手チーム</label>
-        <input id="opponent" type="text" placeholder="例：INUYAMA" />
-      </div>
-      <div class="field">
-        <label>日付</label>
-        <input id="gameDate" type="date" />
-      </div>
-      <div class="field">
-        <label>Q</label>
-        <select id="quarter"></select>
-      </div>
-      <div class="field">
-        <label>メモ</label>
-        <input id="memo" type="text" placeholder="例：プレス強め" />
-      </div>
-    </div>
-
-    <div class="small muted" style="margin-top:8px;">
-      Half Paint Rate = <span class="chip">B/H</span>　
-      Early Paint Rate = <span class="chip">TP/T</span>　
-      Foul Rate = <span class="chip">D/(B+TP)</span>
-    </div>
-  </div>
-
   <!-- ハンバーガーメニュー内 -->
   <div class="headerPanel" id="headerPanel">
     <div class="panelGrid">
@@ -235,6 +211,37 @@ input[type="text"]{
       <div>
         <label>目標（マスタ）</label>
         <button class="menuBtn" id="btnTargets" type="button">KPI目標を編集</button>
+      </div>
+    </div>
+
+    <!-- 入力フォーム（2列） -->
+    <div class="menuForm">
+      <div class="menuRow2">
+        <div>
+          <label>相手チーム</label>
+          <input id="opponent" type="text" placeholder="例：INUYAMA" />
+        </div>
+        <div>
+          <label>日付</label>
+          <input id="gameDate" type="date" />
+        </div>
+      </div>
+
+      <div class="menuRow2" style="margin-top:10px;">
+        <div>
+          <label>現在のQ</label>
+          <select id="quarter"></select>
+        </div>
+        <div>
+          <label>メモ</label>
+          <input id="memo" type="text" placeholder="例：プレス強め" />
+        </div>
+      </div>
+
+      <div class="small muted" style="margin-top:8px;">
+        Half Paint Rate = <span class="chip">HP/H</span>　
+        Early Paint Rate = <span class="chip">TP/T</span>　
+        Foul Rate = <span class="chip">F/(HP+TP)</span>
       </div>
     </div>
 
@@ -255,8 +262,8 @@ input[type="text"]{
     <section class="card">
       <div class="row3">
         <div><label>Half関与（H）</label><button id="btnH" type="button">+1</button></div>
-        <div><label>Half Paint（B）</label><button id="btnB" type="button">+1</button></div>
-        <div><label>Foul（D）</label><button id="btnD" type="button">+1</button></div>
+        <div><label>Half Paint（HP）</label><button id="btnB" type="button">+1</button></div>
+        <div><label>Foul（F）</label><button id="btnD" type="button">+1</button></div>
       </div>
 
       <div class="row3" style="margin-top:10px">
@@ -268,7 +275,7 @@ input[type="text"]{
       <div class="hr"></div>
       <div class="small">
         <b>操作ルール：</b>速攻で中に触ったら <span class="chip">T</span> と <span class="chip">TP</span> を両方 +1。<br/>
-        Half侵入は <span class="chip">H</span> を +1、ペイントまで入ったら <span class="chip">B</span> も +1。
+        Half侵入は <span class="chip">H</span> を +1、ペイントまで入ったら <span class="chip">HP</span> も +1。
       </div>
     </section>
 
@@ -309,7 +316,7 @@ input[type="text"]{
       <div class="tableWrap">
         <table>
           <thead>
-            <tr><th>Q</th><th>H</th><th>B</th><th>D</th><th>T</th><th>TP</th></tr>
+            <tr><th>Q</th><th>H</th><th>HP</th><th>F</th><th>T</th><th>TP</th></tr>
           </thead>
           <tbody id="qTable"></tbody>
         </table>
@@ -412,14 +419,14 @@ input[type="text"]{
 // =====================
 // Storage keys
 // =====================
-const STORAGE_GAMES = "dd_kpi_games_v8";
-const STORAGE_TARGETS = "dd_kpi_targets_v8";
+const STORAGE_GAMES = "dd_kpi_games_v9";
+const STORAGE_TARGETS = "dd_kpi_targets_v9";
 
 // =====================
-// Q / keys (Collapseと2ndは廃止)
+// Q / keys (表示はHP/Fだが内部はB/Dのまま＝互換維持)
 // =====================
 const QS = ["1","2","3","4"];
-const KEYS = ["H","B","D","T","TP"]; // half involvement, half paint, foul, trans involvement, trans paint
+const KEYS = ["H","B","D","T","TP"]; // H=Half involvement, B=HalfPaint(=HP), D=Foul(=F), T=Trans involvement, TP=Trans paint
 const $ = (id) => document.getElementById(id);
 
 // =====================
@@ -489,9 +496,12 @@ function ensureKeys(game){
   QS.forEach(qq=>{
     if(!game.q[qq]) game.q[qq] = {H:0,B:0,D:0,T:0,TP:0};
     if(!game.scores[qq]) game.scores[qq] = {us:null, them:null};
+
+    // migration: older keys A/C/E etc. ignored; ensure required keys exist
     KEYS.forEach(k=>{
       if(game.q[qq][k] == null) game.q[qq][k] = 0;
     });
+
     if(game.scores[qq].us === undefined) game.scores[qq].us = null;
     if(game.scores[qq].them === undefined) game.scores[qq].them = null;
   });
@@ -513,6 +523,7 @@ const safeNum01 = (v, fallback) => {
   const n = Number(String(v).trim());
   return Number.isFinite(n) ? n : fallback;
 };
+
 function gradeClass(val, tg){
   if (val >= tg.ok) return "ok";
   if (val >= tg.mid) return "mid";
@@ -851,8 +862,8 @@ function renderScoreTableAndCorr(){
   const tbody = $("scoreTable");
   tbody.innerHTML = "";
 
-  const xs = []; // paint rate
-  const ys = []; // our points
+  const xs = [];
+  const ys = [];
 
   QS.forEach(q=>{
     const s = state.scores[q] || {us:null, them:null};
@@ -868,34 +879,32 @@ function renderScoreTableAndCorr(){
     `;
     tbody.appendChild(tr);
 
-    // set values
     const usEl = tr.querySelector(`#us_${q}`);
     const thEl = tr.querySelector(`#them_${q}`);
     usEl.value = (s.us ?? "");
     thEl.value = (s.them ?? "");
 
-    // events
     const onChange = () => {
       const us = usEl.value === "" ? null : Number(usEl.value);
       const them = thEl.value === "" ? null : Number(thEl.value);
-      state.scores[q] = { us: Number.isFinite(us) ? us : null, them: Number.isFinite(them) ? them : null };
+      state.scores[q] = {
+        us: Number.isFinite(us) ? us : null,
+        them: Number.isFinite(them) ? them : null
+      };
       upsertState(true);
-      renderScoreTableAndCorr(); // update corr
+      renderScoreTableAndCorr();
     };
     usEl.addEventListener("change", onChange);
     thEl.addEventListener("change", onChange);
     usEl.addEventListener("blur", onChange);
     thEl.addEventListener("blur", onChange);
 
-    // collect for corr if valid
     if (s.us != null && Number.isFinite(s.us) && isFinite(paint)){
-      // paint is meaningful only if denominator exists; we allow 0 but it can skew; still ok.
       xs.push(paint);
       ys.push(s.us);
     }
   });
 
-  // total row for scores
   const sumUs = QS.reduce((acc,q)=> acc + (Number.isFinite(state.scores[q]?.us) ? state.scores[q].us : 0), 0);
   const sumThem = QS.reduce((acc,q)=> acc + (Number.isFinite(state.scores[q]?.them) ? state.scores[q].them : 0), 0);
   const trT = document.createElement("tr");
@@ -964,12 +973,13 @@ $("btnTargetsSave").addEventListener("click", saveTargetsFromUI);
 $("btnTargetsDefault").addEventListener("click", resetTargetsDefault);
 $("targetsModal").addEventListener("click", (e)=>{ if(e.target.id==="targetsModal") closeTargets(); });
 
-// auto-save on edits
 ["opponent","gameDate","memo"].forEach(id=>{
   $(id).addEventListener("change", ()=> upsertState(true));
   $(id).addEventListener("blur", ()=> upsertState(true));
 });
 $("quarter").addEventListener("change", ()=> upsertState(true));
+
+$("btnImport").addEventListener("click", ()=> $("fileInput").click());
 
 // =====================
 // Init
